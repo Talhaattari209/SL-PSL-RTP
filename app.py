@@ -1,7 +1,7 @@
 import streamlit as st
 import sign_language_translator as slt
 from sign_language_translator.models import get_model
-from sign_language_translator.config.enums import ModelCodes, TextLanguageCodes, SignLanguageCodes, SignFormatCodes
+from sign_language_translator.config.enums import ModelCodes, TextLanguages, SignLanguages, SignFormats
 import tempfile
 import os
 
@@ -32,19 +32,19 @@ with st.sidebar:
     # Language selection
     text_lang = st.selectbox(
         "Text Language",
-        ["english", "urdu"],
+        [TextLanguages.ENGLISH.value, TextLanguages.URDU.value],
         help="Select the text language"
     )
     
     sign_lang = st.selectbox(
         "Sign Language",
-        ["psl"],
+        [SignLanguages.PAKISTAN_SIGN_LANGUAGE.value],
         help="Select the sign language"
     )
     
     sign_format = st.selectbox(
         "Sign Format",
-        ["video", "landmarks"],
+        [SignFormats.VIDEO.value, SignFormats.LANDMARKS.value],
         help="Select the sign format"
     )
     
@@ -58,7 +58,7 @@ with st.sidebar:
                     sign_format=sign_format
                 )
             else:  # sign-to-text
-                st.session_state.translator = get_model(ModelCodes.Gesture)
+                st.session_state.translator = get_model(ModelCodes.GESTURE)
             st.success("Translator initialized successfully!")
         except Exception as e:
             st.error(f"Error initializing translator: {str(e)}")
