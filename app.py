@@ -17,6 +17,8 @@ st.write("Translate text to sign language videos or vice versa")
 # Initialize session state
 if 'translator' not in st.session_state:
     st.session_state.translator = None
+if 'embedding_model' not in st.session_state:
+    st.session_state.embedding_model = None
 
 # Sidebar for model selection
 with st.sidebar:
@@ -57,14 +59,17 @@ with st.sidebar:
                     sign_language=sign_lang,
                     sign_format=sign_format
                 )
+                st.success("Text-to-Sign translator initialized successfully!")
             else:  # sign-to-text
-                st.session_state.translator = get_model(ModelCodes.GESTURE)
-            st.success("Translator initialized successfully!")
+                # Initialize MediaPipe model for landmark extraction
+                st.session_state.embedding_model = slt.models.MediaPipeLandmarksModel()
+                st.success("Sign-to-Text processor initialized successfully!")
         except Exception as e:
-            st.error(f"Error initializing translator: {str(e)}")
+            st.error(f"Error initializing: {str(e)}")
 
 # Main content area
-if st.session_state.translator is None:
+if (model_code == "text-to-sign" and st.session_state.translator is None) or \
+   (model_code == "sign-to-text" and st.session_state.embedding_model is None):
     st.warning("Please initialize the translator from the sidebar first.")
 else:
     # Input section
@@ -103,22 +108,31 @@ else:
                 tmp_file.write(uploaded_file.getvalue())
                 video_path = tmp_file.name
             
-            if st.button("Translate"):
+            if st.button("Process"):
                 try:
-                    with st.spinner("Translating..."):
+                    with st.spinner("Processing video..."):
                         # Load video and extract features
                         video = slt.Video(video_path)
-                        embedding_model = slt.models.MediaPipeLandmarksModel()
-                        embedding = embedding_model.embed(video.iter_frames())
                         
-                        # Perform translation
-                        result = st.session_state.translator.translate(embedding)
+                        # Extract landmarks using MediaPipe
+                        landmarks = st.session_state.embedding_model.embed(video.iter_frames())
                         
-                        # Display the result
-                        st.write("Translation:")
-                        st.write(result)
+                        # Display the landmarks visualization
+                        landmarks_viz = slt.Landmarks(landmarks.reshape((-1, 75, 5)), 
+                                                   connections="mediapipe-world")
+                        
+                        # Save landmarks visualization as GIF
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as viz_file:
+                            landmarks_viz.save_animation(viz_file.name, overwrite=True)
+                            st.image(viz_file.name, caption="Extracted Landmarks")
+                            os.unlink(viz_file.name)
+                        
+                        # Display the extracted landmarks data
+                        st.write("Extracted Landmarks Shape:", landmarks.shape)
+                        st.write("Note: Sign-to-text translation model is not yet available. This shows the landmark extraction step.")
+                        
                 except Exception as e:
-                    st.error(f"Translation error: {str(e)}")
+                    st.error(f"Processing error: {str(e)}")
                 finally:
                     # Clean up temporary file
                     os.unlink(video_path) 
