@@ -1,5 +1,7 @@
 import streamlit as st
-from sign_language_translator import Translator
+import sign_language_translator as slt
+from sign_language_translator.models import get_model
+from sign_language_translator.config.enums import ModelCodes, TextLanguageCodes, SignLanguageCodes, SignFormatCodes
 import tempfile
 import os
 
@@ -49,12 +51,14 @@ with st.sidebar:
     # Initialize translator
     if st.button("Initialize Translator"):
         try:
-            st.session_state.translator = Translator(
-                model_code=model_code,
-                text_lang=text_lang,
-                sign_lang=sign_lang,
-                sign_format=sign_format
-            )
+            if model_code == "text-to-sign":
+                st.session_state.translator = slt.models.ConcatenativeSynthesis(
+                    text_language=text_lang,
+                    sign_language=sign_lang,
+                    sign_format=sign_format
+                )
+            else:  # sign-to-text
+                st.session_state.translator = get_model(ModelCodes.Gesture)
             st.success("Translator initialized successfully!")
         except Exception as e:
             st.error(f"Error initializing translator: {str(e)}")
@@ -79,12 +83,8 @@ else:
                             output_path = os.path.join(temp_dir, "output.mp4")
                             
                             # Perform translation
-                            st.session_state.translator.translate(
-                                inputs=[input_text],
-                                output_dir=temp_dir,
-                                save_format="mp4",
-                                display=False
-                            )
+                            sign = st.session_state.translator.translate(input_text)
+                            sign.save(output_path, overwrite=True)
                             
                             # Display the video
                             st.video(output_path)
@@ -106,11 +106,13 @@ else:
             if st.button("Translate"):
                 try:
                     with st.spinner("Translating..."):
+                        # Load video and extract features
+                        video = slt.Video(video_path)
+                        embedding_model = slt.models.MediaPipeLandmarksModel()
+                        embedding = embedding_model.embed(video.iter_frames())
+                        
                         # Perform translation
-                        result = st.session_state.translator.translate(
-                            inputs=[video_path],
-                            display=False
-                        )
+                        result = st.session_state.translator.translate(embedding)
                         
                         # Display the result
                         st.write("Translation:")
