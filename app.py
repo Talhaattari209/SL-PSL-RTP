@@ -4,6 +4,7 @@ from sign_language_translator.models import get_model
 from sign_language_translator.config.enums import ModelCodes, TextLanguages, SignLanguages, SignFormats
 import tempfile
 import os
+import re
 
 st.set_page_config(
     page_title="Sign Language Translator",
@@ -19,6 +20,18 @@ if 'translator' not in st.session_state:
     st.session_state.translator = None
 if 'embedding_model' not in st.session_state:
     st.session_state.embedding_model = None
+if 'disambiguation_map' not in st.session_state:
+    st.session_state.disambiguation_map = {}
+
+# Helper function to extract options from error message
+def extract_options_from_error(error_msg):
+    match = re.search(r"Try from \[(.*?)\]", str(error_msg))
+    if match:
+        options_str = match.group(1)
+        # Split by comma and clean up the quotes
+        options = [opt.strip().strip("'") for opt in options_str.split(',')]
+        return options
+    return []
 
 # Sidebar for model selection
 with st.sidebar:
@@ -79,24 +92,49 @@ else:
         # Text to Sign translation
         input_text = st.text_area("Enter text to translate", height=100)
         
-        if st.button("Translate"):
-            if input_text:
-                try:
-                    with st.spinner("Translating..."):
-                        # Create a temporary directory for the output
-                        with tempfile.TemporaryDirectory() as temp_dir:
-                            output_path = os.path.join(temp_dir, "output.mp4")
-                            
-                            # Perform translation
-                            sign = st.session_state.translator.translate(input_text)
-                            sign.save(output_path, overwrite=True)
-                            
-                            # Display the video
-                            st.video(output_path)
-                except Exception as e:
-                    st.error(f"Translation error: {str(e)}")
-            else:
-                st.warning("Please enter some text to translate")
+        # Show disambiguation options if needed
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            if st.button("Translate"):
+                if input_text:
+                    try:
+                        with st.spinner("Translating..."):
+                            # Create a temporary directory for the output
+                            with tempfile.TemporaryDirectory() as temp_dir:
+                                output_path = os.path.join(temp_dir, "output.mp4")
+                                
+                                # Try translation
+                                try:
+                                    sign = st.session_state.translator.translate(input_text)
+                                    sign.save(output_path, overwrite=True)
+                                    st.video(output_path)
+                                    # Clear disambiguation map if translation successful
+                                    st.session_state.disambiguation_map = {}
+                                except Exception as e:
+                                    error_msg = str(e)
+                                    if "is ambiguous" in error_msg:
+                                        # Extract the ambiguous word
+                                        word = error_msg.split("'")[1]
+                                        options = extract_options_from_error(error_msg)
+                                        if options:
+                                            st.warning(f"Please select the correct form for the word '{word}'")
+                                            # Store options for the word
+                                            st.session_state.disambiguation_map[word] = options
+                                    else:
+                                        raise e
+                    except Exception as e:
+                        st.error(f"Translation error: {str(e)}")
+                else:
+                    st.warning("Please enter some text to translate")
+        
+        # Show disambiguation options in sidebar
+        with col2:
+            if st.session_state.disambiguation_map:
+                st.subheader("Word Forms")
+                for word, options in st.session_state.disambiguation_map.items():
+                    selected = st.radio(f"Select form for '{word}'", options)
+                    # Replace the ambiguous word with the selected form
+                    input_text = input_text.replace(word, selected)
     
     else:  # sign-to-text
         # Sign to Text translation
