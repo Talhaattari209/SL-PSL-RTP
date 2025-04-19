@@ -5,12 +5,18 @@ from sign_language_translator.config.enums import ModelCodes, TextLanguages, Sig
 import tempfile
 import os
 import re
+import base64
+from pathlib import Path
 
 st.set_page_config(
     page_title="Sign Language Translator",
     page_icon="🤟",
     layout="wide"
 )
+
+# Create a directory for temporary files if it doesn't exist
+TEMP_DIR = Path("temp_files")
+TEMP_DIR.mkdir(exist_ok=True)
 
 st.title("Sign Language Translator")
 st.write("Translate text to sign language videos or vice versa")
@@ -49,6 +55,16 @@ def ensure_assets_downloaded():
                 st.error(f"Error downloading assets: {str(e)}")
                 return False
     return True
+
+# Helper function to clean up old temporary files
+def cleanup_temp_files():
+    if TEMP_DIR.exists():
+        for file in TEMP_DIR.glob("*"):
+            try:
+                if file.is_file():
+                    file.unlink()
+            except Exception:
+                pass
 
 # Sidebar for model selection
 with st.sidebar:
@@ -101,6 +117,9 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Error initializing: {str(e)}")
 
+# Clean up old temporary files at the start of each run
+cleanup_temp_files()
+
 # Main content area
 if (model_code == "text-to-sign" and st.session_state.translator is None) or \
    (model_code == "sign-to-text" and st.session_state.embedding_model is None):
@@ -122,31 +141,38 @@ else:
                     if ensure_assets_downloaded():
                         try:
                             with st.spinner("Translating..."):
-                                # Create a temporary directory for the output
-                                with tempfile.TemporaryDirectory() as temp_dir:
-                                    output_path = os.path.join(temp_dir, "output.mp4")
-                                    
+                                # Generate a unique filename
+                                output_path = TEMP_DIR / f"output_{base64.urlsafe_b64encode(os.urandom(6)).decode()}.mp4"
+                                
+                                try:
                                     # Try translation
-                                    try:
-                                        sign = st.session_state.translator.translate(input_text)
-                                        sign.save(output_path, overwrite=True)
-                                        st.video(output_path)
+                                    sign = st.session_state.translator.translate(input_text)
+                                    
+                                    # Save with explicit overwrite and permissions
+                                    sign.save(str(output_path), overwrite=True)
+                                    
+                                    # Ensure the file exists and is readable
+                                    if output_path.exists():
+                                        st.video(str(output_path))
                                         # Clear disambiguation map if translation successful
                                         st.session_state.disambiguation_map = {}
-                                    except Exception as e:
-                                        error_msg = str(e)
-                                        if "is ambiguous" in error_msg:
-                                            # Extract the ambiguous word
-                                            word = error_msg.split("'")[1]
-                                            options = extract_options_from_error(error_msg)
-                                            if options:
-                                                st.warning(f"Please select the correct form for the word '{word}'")
-                                                # Store options for the word
-                                                st.session_state.disambiguation_map[word] = options
-                                        else:
-                                            # For debugging
-                                            st.error(f"Translation error: {str(e)}")
-                                            st.write("Available assets:", list(slt.Assets.FILE_TO_URL.keys()))
+                                    else:
+                                        st.error("Failed to save the video file.")
+                                        
+                                except Exception as e:
+                                    error_msg = str(e)
+                                    if "is ambiguous" in error_msg:
+                                        # Extract the ambiguous word
+                                        word = error_msg.split("'")[1]
+                                        options = extract_options_from_error(error_msg)
+                                        if options:
+                                            st.warning(f"Please select the correct form for the word '{word}'")
+                                            # Store options for the word
+                                            st.session_state.disambiguation_map[word] = options
+                                    else:
+                                        # For debugging
+                                        st.error(f"Translation error: {str(e)}")
+                                        st.write("Available assets:", list(slt.Assets.FILE_TO_URL.keys()))
                         except Exception as e:
                             st.error(f"Translation error: {str(e)}")
                 else:
@@ -166,16 +192,15 @@ else:
         uploaded_file = st.file_uploader("Upload a sign language video", type=["mp4", "avi", "mov"])
         
         if uploaded_file is not None:
-            # Save uploaded file to temporary location
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_file:
-                tmp_file.write(uploaded_file.getvalue())
-                video_path = tmp_file.name
+            # Save uploaded file to our managed temp directory
+            video_path = TEMP_DIR / f"input_{base64.urlsafe_b64encode(os.urandom(6)).decode()}.mp4"
+            video_path.write_bytes(uploaded_file.getvalue())
             
             if st.button("Process"):
                 try:
                     with st.spinner("Processing video..."):
                         # Load video and extract features
-                        video = slt.Video(video_path)
+                        video = slt.Video(str(video_path))
                         
                         # Extract landmarks using MediaPipe
                         landmarks = st.session_state.embedding_model.embed(video.iter_frames())
@@ -185,10 +210,11 @@ else:
                                                    connections="mediapipe-world")
                         
                         # Save landmarks visualization as GIF
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as viz_file:
-                            landmarks_viz.save_animation(viz_file.name, overwrite=True)
-                            st.image(viz_file.name, caption="Extracted Landmarks")
-                            os.unlink(viz_file.name)
+                        viz_path = TEMP_DIR / f"viz_{base64.urlsafe_b64encode(os.urandom(6)).decode()}.gif"
+                        landmarks_viz.save_animation(str(viz_path), overwrite=True)
+                        
+                        if viz_path.exists():
+                            st.image(str(viz_path), caption="Extracted Landmarks")
                         
                         # Display the extracted landmarks data
                         st.write("Extracted Landmarks Shape:", landmarks.shape)
@@ -197,5 +223,8 @@ else:
                 except Exception as e:
                     st.error(f"Processing error: {str(e)}")
                 finally:
-                    # Clean up temporary file
-                    os.unlink(video_path) 
+                    # Clean up the input video file
+                    try:
+                        video_path.unlink()
+                    except Exception:
+                        pass 
