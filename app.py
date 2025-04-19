@@ -7,6 +7,7 @@ import os
 import re
 import base64
 from pathlib import Path
+import io
 
 st.set_page_config(
     page_title="Sign Language Translator",
@@ -141,23 +142,20 @@ else:
                     if ensure_assets_downloaded():
                         try:
                             with st.spinner("Translating..."):
-                                # Generate a unique filename
-                                output_path = TEMP_DIR / f"output_{base64.urlsafe_b64encode(os.urandom(6)).decode()}.mp4"
-                                
                                 try:
                                     # Try translation
                                     sign = st.session_state.translator.translate(input_text)
                                     
-                                    # Save with explicit overwrite and permissions
-                                    sign.save(str(output_path), overwrite=True)
+                                    # Get the video data
+                                    video_data = io.BytesIO()
+                                    sign.save(video_data)
+                                    video_bytes = video_data.getvalue()
                                     
-                                    # Ensure the file exists and is readable
-                                    if output_path.exists():
-                                        st.video(str(output_path))
-                                        # Clear disambiguation map if translation successful
-                                        st.session_state.disambiguation_map = {}
-                                    else:
-                                        st.error("Failed to save the video file.")
+                                    # Display using Streamlit
+                                    st.video(video_bytes)
+                                    
+                                    # Clear disambiguation map if translation successful
+                                    st.session_state.disambiguation_map = {}
                                         
                                 except Exception as e:
                                     error_msg = str(e)
@@ -173,6 +171,9 @@ else:
                                         # For debugging
                                         st.error(f"Translation error: {str(e)}")
                                         st.write("Available assets:", list(slt.Assets.FILE_TO_URL.keys()))
+                                        # Print more debug info
+                                        st.write("Asset directory:", slt.Assets.get_root_dir())
+                                        st.write("Current working directory:", os.getcwd())
                         except Exception as e:
                             st.error(f"Translation error: {str(e)}")
                 else:
@@ -192,39 +193,33 @@ else:
         uploaded_file = st.file_uploader("Upload a sign language video", type=["mp4", "avi", "mov"])
         
         if uploaded_file is not None:
-            # Save uploaded file to our managed temp directory
-            video_path = TEMP_DIR / f"input_{base64.urlsafe_b64encode(os.urandom(6)).decode()}.mp4"
-            video_path.write_bytes(uploaded_file.getvalue())
-            
             if st.button("Process"):
                 try:
                     with st.spinner("Processing video..."):
-                        # Load video and extract features
-                        video = slt.Video(str(video_path))
-                        
-                        # Extract landmarks using MediaPipe
-                        landmarks = st.session_state.embedding_model.embed(video.iter_frames())
-                        
-                        # Display the landmarks visualization
-                        landmarks_viz = slt.Landmarks(landmarks.reshape((-1, 75, 5)), 
-                                                   connections="mediapipe-world")
-                        
-                        # Save landmarks visualization as GIF
-                        viz_path = TEMP_DIR / f"viz_{base64.urlsafe_b64encode(os.urandom(6)).decode()}.gif"
-                        landmarks_viz.save_animation(str(viz_path), overwrite=True)
-                        
-                        if viz_path.exists():
-                            st.image(str(viz_path), caption="Extracted Landmarks")
-                        
-                        # Display the extracted landmarks data
-                        st.write("Extracted Landmarks Shape:", landmarks.shape)
-                        st.write("Note: Sign-to-text translation model is not yet available. This shows the landmark extraction step.")
+                        # Load video directly from uploaded file
+                        video_bytes = uploaded_file.getvalue()
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_file:
+                            tmp_file.write(video_bytes)
+                            video = slt.Video(tmp_file.name)
+                            
+                            # Extract landmarks using MediaPipe
+                            landmarks = st.session_state.embedding_model.embed(video.iter_frames())
+                            
+                            # Display the landmarks visualization
+                            landmarks_viz = slt.Landmarks(landmarks.reshape((-1, 75, 5)), 
+                                                       connections="mediapipe-world")
+                            
+                            # Save landmarks visualization to bytes
+                            viz_data = io.BytesIO()
+                            landmarks_viz.save_animation(viz_data)
+                            st.image(viz_data.getvalue(), caption="Extracted Landmarks")
+                            
+                            # Display the extracted landmarks data
+                            st.write("Extracted Landmarks Shape:", landmarks.shape)
+                            st.write("Note: Sign-to-text translation model is not yet available. This shows the landmark extraction step.")
+                            
+                            # Clean up
+                            os.unlink(tmp_file.name)
                         
                 except Exception as e:
-                    st.error(f"Processing error: {str(e)}")
-                finally:
-                    # Clean up the input video file
-                    try:
-                        video_path.unlink()
-                    except Exception:
-                        pass 
+                    st.error(f"Processing error: {str(e)}") 
