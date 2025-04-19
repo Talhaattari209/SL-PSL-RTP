@@ -22,6 +22,8 @@ if 'embedding_model' not in st.session_state:
     st.session_state.embedding_model = None
 if 'disambiguation_map' not in st.session_state:
     st.session_state.disambiguation_map = {}
+if 'assets_downloaded' not in st.session_state:
+    st.session_state.assets_downloaded = False
 
 # Helper function to extract options from error message
 def extract_options_from_error(error_msg):
@@ -32,6 +34,21 @@ def extract_options_from_error(error_msg):
         options = [opt.strip().strip("'") for opt in options_str.split(',')]
         return options
     return []
+
+# Helper function to download required assets
+def ensure_assets_downloaded():
+    if not st.session_state.assets_downloaded:
+        with st.spinner("Downloading required assets... This may take a few minutes..."):
+            try:
+                # Download all required assets
+                slt.Assets.download(r".*urls\.json")  # Download URL mappings
+                slt.Assets.download(r".*\.mp4")  # Download video files
+                st.session_state.assets_downloaded = True
+                st.success("Assets downloaded successfully!")
+            except Exception as e:
+                st.error(f"Error downloading assets: {str(e)}")
+                return False
+    return True
 
 # Sidebar for model selection
 with st.sidebar:
@@ -66,17 +83,21 @@ with st.sidebar:
     # Initialize translator
     if st.button("Initialize Translator"):
         try:
-            if model_code == "text-to-sign":
-                st.session_state.translator = slt.models.ConcatenativeSynthesis(
-                    text_language=text_lang,
-                    sign_language=sign_lang,
-                    sign_format=sign_format
-                )
-                st.success("Text-to-Sign translator initialized successfully!")
-            else:  # sign-to-text
-                # Initialize MediaPipe model for landmark extraction
-                st.session_state.embedding_model = slt.models.MediaPipeLandmarksModel()
-                st.success("Sign-to-Text processor initialized successfully!")
+            # First ensure assets are downloaded
+            if model_code == "text-to-sign" and not ensure_assets_downloaded():
+                st.error("Failed to download required assets. Please try again.")
+            else:
+                if model_code == "text-to-sign":
+                    st.session_state.translator = slt.models.ConcatenativeSynthesis(
+                        text_language=text_lang,
+                        sign_language=sign_lang,
+                        sign_format=sign_format
+                    )
+                    st.success("Text-to-Sign translator initialized successfully!")
+                else:  # sign-to-text
+                    # Initialize MediaPipe model for landmark extraction
+                    st.session_state.embedding_model = slt.models.MediaPipeLandmarksModel()
+                    st.success("Sign-to-Text processor initialized successfully!")
         except Exception as e:
             st.error(f"Error initializing: {str(e)}")
 
@@ -97,33 +118,37 @@ else:
         with col1:
             if st.button("Translate"):
                 if input_text:
-                    try:
-                        with st.spinner("Translating..."):
-                            # Create a temporary directory for the output
-                            with tempfile.TemporaryDirectory() as temp_dir:
-                                output_path = os.path.join(temp_dir, "output.mp4")
-                                
-                                # Try translation
-                                try:
-                                    sign = st.session_state.translator.translate(input_text)
-                                    sign.save(output_path, overwrite=True)
-                                    st.video(output_path)
-                                    # Clear disambiguation map if translation successful
-                                    st.session_state.disambiguation_map = {}
-                                except Exception as e:
-                                    error_msg = str(e)
-                                    if "is ambiguous" in error_msg:
-                                        # Extract the ambiguous word
-                                        word = error_msg.split("'")[1]
-                                        options = extract_options_from_error(error_msg)
-                                        if options:
-                                            st.warning(f"Please select the correct form for the word '{word}'")
-                                            # Store options for the word
-                                            st.session_state.disambiguation_map[word] = options
-                                    else:
-                                        raise e
-                    except Exception as e:
-                        st.error(f"Translation error: {str(e)}")
+                    # Ensure assets are downloaded before translation
+                    if ensure_assets_downloaded():
+                        try:
+                            with st.spinner("Translating..."):
+                                # Create a temporary directory for the output
+                                with tempfile.TemporaryDirectory() as temp_dir:
+                                    output_path = os.path.join(temp_dir, "output.mp4")
+                                    
+                                    # Try translation
+                                    try:
+                                        sign = st.session_state.translator.translate(input_text)
+                                        sign.save(output_path, overwrite=True)
+                                        st.video(output_path)
+                                        # Clear disambiguation map if translation successful
+                                        st.session_state.disambiguation_map = {}
+                                    except Exception as e:
+                                        error_msg = str(e)
+                                        if "is ambiguous" in error_msg:
+                                            # Extract the ambiguous word
+                                            word = error_msg.split("'")[1]
+                                            options = extract_options_from_error(error_msg)
+                                            if options:
+                                                st.warning(f"Please select the correct form for the word '{word}'")
+                                                # Store options for the word
+                                                st.session_state.disambiguation_map[word] = options
+                                        else:
+                                            # For debugging
+                                            st.error(f"Translation error: {str(e)}")
+                                            st.write("Available assets:", list(slt.Assets.FILE_TO_URL.keys()))
+                        except Exception as e:
+                            st.error(f"Translation error: {str(e)}")
                 else:
                     st.warning("Please enter some text to translate")
         
