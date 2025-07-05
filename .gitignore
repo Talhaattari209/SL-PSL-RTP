@@ -26,10 +26,11 @@ docs/sign_language_translator.*.rst
 
 # auto-downloaded
 sign-language-resources
-assets/
+
 *[_-]urls.json
 *checksum.json
 
 # Large video folders to exclude
 sign_language_translator/assets/video1/videos/
-sign_language_translator/assets_WLASL/Common_WLASL_videos/ 
+sign_language_translator/assets_WLASL/Common_WLASL_videos/
+sign_language_translator/assets_WLASL/Augmented_LandMarks/Processed_Landmarks_WLASL/ 
