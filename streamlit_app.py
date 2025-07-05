@@ -44,6 +44,38 @@ def create_assets_directory():
         st.error(f"Error creating assets directory: {e}")
         return False
 
+def download_sample_videos():
+    """Download sample videos for demonstration"""
+    try:
+        videos_dir = Path("assets/videos")
+        videos_dir.mkdir(exist_ok=True)
+        
+        # Sample video URLs (you can replace these with your actual video URLs)
+        sample_videos = {
+            "hello.mp4": "https://example.com/hello.mp4",  # Replace with actual URL
+            "thank_you.mp4": "https://example.com/thank_you.mp4"  # Replace with actual URL
+        }
+        
+        for filename, url in sample_videos.items():
+            file_path = videos_dir / filename
+            if not file_path.exists():
+                try:
+                    response = requests.get(url, stream=True)
+                    if response.status_code == 200:
+                        with open(file_path, 'wb') as f:
+                            for chunk in response.iter_content(chunk_size=8192):
+                                f.write(chunk)
+                        st.success(f"Downloaded {filename}")
+                    else:
+                        st.warning(f"Could not download {filename}")
+                except Exception as e:
+                    st.warning(f"Error downloading {filename}: {e}")
+        
+        return True
+    except Exception as e:
+        st.error(f"Error downloading videos: {e}")
+        return False
+
 def main():
     st.title("🤟 Sign Language Translator")
     st.markdown("Translate text to sign language videos and vice versa")
@@ -57,6 +89,7 @@ def main():
     if not st.session_state.assets_ready:
         with st.spinner("Setting up assets..."):
             if create_assets_directory():
+                download_sample_videos()
                 st.session_state.assets_ready = True
                 st.success("✅ Assets setup complete!")
     
@@ -127,7 +160,7 @@ def text_to_sign_page():
                 
                 # Show sample output
                 if output_format == "Video":
-                    st.info("Sample video would appear here")
+                    st.video("assets/videos/hello.mp4") if Path("assets/videos/hello.mp4").exists() else st.info("Sample video would appear here")
                 elif output_format == "Landmarks":
                     st.json({"landmarks": "Sample landmark data would appear here"})
                 else:
