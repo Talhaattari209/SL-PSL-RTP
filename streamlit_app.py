@@ -13,12 +13,15 @@ import sys
 # Add the sign_language_translator to the path
 sys.path.append(str(Path(__file__).parent))
 
-# Set page config
+# Add identifier to show which app is running
 st.set_page_config(
-    page_title="Sign Language Translator",
+    page_title="Sign Language Translator - STREAMLIT APP",
     page_icon="🤟",
     layout="wide"
 )
+
+# Show which app is running
+st.sidebar.markdown("**Running: streamlit_app.py (Updated)**")
 
 # Initialize session state for models
 if 'psl_sign_to_text_model' not in st.session_state:
