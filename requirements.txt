@@ -10,5 +10,5 @@ requests
 click
 pillow
 matplotlib
-sign-language-translator[mediapipe]
+sign-language-translator
 deep_translator==1.11.4
