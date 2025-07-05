@@ -231,18 +231,27 @@ class MatPlot3D:
         blit: bool = True,
     ) -> FuncAnimation:
         """
-        Animates the given frames representing 3D coordinates with 3D scatter plot and lines connecting those points.
+        Animates the given frames representing 3D coordinates with 3D scatter plot and lines
+          connecting those points.
 
         Args:
-            frames (Union[Sequence[Sequence[Tuple[float, float, float]]], NDArray]): The frames to animate, represented as a sequence of collection of 3D coordinates.
-            line_indexes (Optional[Sequence[Sequence[int]]]): The indexes of the points in a frame to connect in lines.  If not provided, connects the points in a cycle [0, 1, 2, ..., n-1, 0].
-            line_colors (Sequence[Union[Tuple[float, float, float], None]]): The colors of the lines in RGB format normalized to [0.0, 1.0] range. If not provided, default to a gradient of blue to pink to blue.
+            frames (Union[Sequence[Sequence[Tuple[float, float, float]]], NDArray]): The frames to animate,
+              represented as a sequence of collection of 3D coordinates.
+            line_indexes (Optional[Sequence[Sequence[int]]]): The indexes of the points in a frame to
+              connect in lines.  If not provided, connects the points in a cycle [0, 1, 2, ..., n-1, 0].
+            line_colors (Sequence[Union[Tuple[float, float, float], None]]): The colors of the lines in 
+                RGB format normalized to [0.0, 1.0] range. If not provided, default to a gradient of blue to
+                pink to blue.
             line_labels (Sequence[Union[str, None]]): The labels of the lines.
-            scatter_color (Tuple[float, float, float]): The color of the scatter points in RGB format normalized to [0.0, 1.0] range. Default is black.
-            title (Optional[str]): The title of the animation. Can include the placeholder "{frame_number}" to display the frame number. Defaults to "{frame_number}".
+            scatter_color (Tuple[float, float, float]): The color of the scatter points in RGB format
+              normalized to [0.0, 1.0] range. Default is black.
+            title (Optional[str]): The title of the animation. Can include the placeholder "{frame_number}" 
+                to display the frame number. Defaults to "{frame_number}".
             vertical_axis (Literal["x", "y", "z"]): The vertical axis in the plot. Default is "z".
-            ticks_scale (Optional[float]): The scale of the ticks. Defaults to the nearest power of 10 under the range in data.
-            layout (Literal["constrained", "compressed", "tight", "none"]): The layout of the plot. Default is "none".
+            ticks_scale (Optional[float]): The scale of the ticks. Defaults to the nearest power of 10 under
+                the range in data.
+            layout (Literal["constrained", "compressed", "tight", "none"]): The layout of the plot. 
+                Default is "none".
             interval (Union[float, int]): The interval between frames in milliseconds. Default is 37.
             repeat_delay (Union[float, int]): The delay between replays in milliseconds. Default is 100.
             blit (bool): Whether to use blitting for faster updates. Default is True.

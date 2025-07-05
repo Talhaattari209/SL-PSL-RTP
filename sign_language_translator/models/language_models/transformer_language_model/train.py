@@ -1,8 +1,10 @@
 """This module contains classes to train transformer language models.
 
 Classes:
-    LM_Dataset(torch.utils.data.Dataset): subclass for language model. has a process function that can convert text file into a list of tensors.
-    LM_Trainer: Trainer class for language model. runs training loop, prints metrics and makes model checkpoints.
+    LM_Dataset(torch.utils.data.Dataset): subclass for language model. has a process function that can
+      convert text file into a list of tensors.
+    LM_Trainer: Trainer class for language model. runs training loop, prints metrics and makes 
+    model checkpoints.
 """
 
 from __future__ import annotations
@@ -51,10 +53,13 @@ class LM_Dataset(torch.utils.data.Dataset):  # type: ignore
 
         Args:
             file_path (str): where the input file is stored
-            text_to_token_ids (Callable[[str], List[int]]): a function that can process a line from file and convert it into a list of token ids.
-            max_sequence_length (int, optional): make n_grams of sequences longer than this of size max_sequence_length. Defaults to 32.
+            text_to_token_ids (Callable[[str], List[int]]): a function that can process a line from file 
+            and convert it into a list of token ids.
+            max_sequence_length (int, optional): make n_grams of sequences longer than this of size 
+            max_sequence_length. Defaults to 32.
             encoding (str, optional): the encoding used in the text file. Defaults to "utf-8".
-            dtype (_type_, optional): the type of returned torch tensors. check the range of values a type can contain and choose the smallest to save space. Defaults to torch.int.
+            dtype (_type_, optional): the type of returned torch tensors. check the range of values a
+              type can contain and choose the smallest to save space. Defaults to torch.int.
 
         Returns:
             List[torch.Tensor]: _description_

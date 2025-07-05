@@ -20,28 +20,38 @@ from sign_language_translator.utils import sample_one_index
 
 
 class NgramLanguageModel(LanguageModel):
-    """NgramLanguageModel is a statistical language model based on n-grams. It provides functionality for training the model on a given training corpus, generating the next token based on a context, and saving/loading the model.
+    """NgramLanguageModel is a statistical language model based on n-grams. It provides functionality
+      for training the model on a given training corpus, generating the next token 
+      based on a context, and saving/loading the model.
 
     Attributes:
     - window_size (int): The size of the context window for predicting the next token.
     - unknown_token (str): The token representation used for unknown or out-of-vocabulary tokens.
-    - sampling_temperature (float): A temperature parameter controlling the sampling probabilities during token generation.
+    - sampling_temperature (float): A temperature parameter controlling the sampling probabilities during 
+       token generation.
     - name (str): The name of the language model object (optional).
 
     Methods:
-    - train(self, training_corpus): Alias for the fit() method. Trains the language model on the given training corpus.
+    - train(self, training_corpus): Alias for the fit() method. Trains the language model on the given
+      training corpus.
     - fit(self, training_corpus): Trains the language model on the given training corpus.
-    - finetune(self, training_corpus, weightage: float): Fine-tunes the language model on an additional training corpus with a specified weightage.
-    - next(self, context: Iterable) -> Tuple[Any, float]: Samples the next token from the learned distribution based on the given context.
-    - next_all(self, context: Iterable) -> Tuple[List[Any], List[float]]: Returns a list of possible next tokens and their associated probabilities based on the given context.
+    - finetune(self, training_corpus, weightage: float): Fine-tunes the language model on an
+      additional training corpus with a specified weightage.
+    - next(self, context: Iterable) -> Tuple[Any, float]: Samples the next token from the learned
+      distribution based on the given context.
+    - next_all(self, context: Iterable) -> Tuple[List[Any], List[float]]: Returns a list of 
+       possible next tokens and their associated probabilities based on the given context.
     - load(model_path: str) -> NgramLanguageModel: Deserializes the model from a JSON file.
     - save(self, model_path: str, indent=None, ensure_ascii=False): Serializes the model to a JSON file.
     - __str__(self) -> str: Returns a string representation of the NgramLanguageModel instance.
 
     Private Methods:
-    - _to_key_datatype(self, item: Iterable) -> Tuple: Converts an iterable item to the appropriate datatype for use as a key in the model dictionary.
-    - _count_ngrams(self, training_corpus: List[Iterable], n: int) -> Dict[Tuple, int]: Counts the occurrences of n-grams in the training corpus.
-    - _group_by_context(self, counts: Dict[Tuple, int]): Groups the n-grams by context and calculates the weights for each next token.
+    - _to_key_datatype(self, item: Iterable) -> Tuple: Converts an iterable item to the appropriate
+      datatype for use as a key in the model dictionary.
+    - _count_ngrams(self, training_corpus: List[Iterable], n: int) -> Dict[Tuple, int]: Counts the
+      occurrences of n-grams in the training corpus.
+    - _group_by_context(self, counts: Dict[Tuple, int]): Groups the n-grams by context and 
+       calculates the weights for each next token.
     - _count_parameters(self): Counts the total number of weights/probabilities in the model.
 
     """
@@ -80,7 +90,8 @@ class NgramLanguageModel(LanguageModel):
         """Trains the language model on the given training corpus.
 
         Args:
-            training_corpus (Iterable[Iterable]): The training corpus, an iterable of sequences representing the text data.
+            training_corpus (Iterable[Iterable]): The training corpus, an iterable of sequences 
+            representing the text data.
 
         Returns:
             None
@@ -163,7 +174,8 @@ class NgramLanguageModel(LanguageModel):
         return next_tokens, probabilities
 
     def _to_key_datatype(self, item: Iterable) -> Tuple:
-        """Converts an iterable item to the appropriate datatype for use as a key in the model dictionary."""
+        """Converts an iterable item to the appropriate datatype for use as a key
+          in the model dictionary."""
 
         return tuple(item)
 

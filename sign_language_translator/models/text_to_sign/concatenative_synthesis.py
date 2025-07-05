@@ -1,4 +1,5 @@
-"""This module defines the ConcatenativeSynthesis class, which represents a rule based model for translating text to sign language."""
+"""This module defines the ConcatenativeSynthesis class, which represents 
+a rule based model for translating text to sign language."""
 
 from __future__ import annotations
 
@@ -33,10 +34,15 @@ class ConcatenativeSynthesis(TextToSignModel):
     ) -> None:
         """
         Args:
-            text_language (str | TextLanguage | Enum): (source) The text language processor object or its identifier. (e.g. "urdu" or `slt.languages.text.Urdu()`. See `slt.TextLanguageCodes` for all options.)
-            sign_language (str | SignLanguage | Enum): (target) The sign language processor object or its identifier. (e.g. "pk-sl" or `slt.languages.sign.PakistanSignLanguage()`. See `slt.SignLanguageCodes` for all options.)
-            sign_format (str | Type[Sign]): (format) The sign features used for mapping labels to sign features. (e.g. "video" or `slt.vision.Video` or "landmarks" or `slt.vision.Landmarks`. See `slt.SignFormatCodes` for all options.)
-            sign_embedding_model (str | Enum | None, optional): The name of the model used for extracting features from the signs in available datasets. Not required for Video sign_format. (e.g. "mediapipe-world". See `slt.enums.SignEmbeddingModels` for all options.)
+            text_language (str | TextLanguage | Enum): (source) The text language processor object
+              or its identifier. (e.g. "urdu" or `slt.languages.text.Urdu()`. See `slt.TextLanguageCodes` for all options.)
+            sign_language (str | SignLanguage | Enum): (target) The sign language processor object or its identifier. 
+                 (e.g. "pk-sl" or `slt.languages.sign.PakistanSignLanguage()`. See `slt.SignLanguageCodes` for all options.)
+            sign_format (str | Type[Sign]): (format) The sign features used for mapping labels to sign features.
+                 (e.g. "video" or `slt.vision.Video` or "landmarks" or `slt.vision.Landmarks`. See `slt.SignFormatCodes` for all options.)
+            sign_embedding_model (str | Enum | None, optional): The name of the model used for extracting features from the signs 
+                in available datasets. Not required for Video sign_format. (e.g. "mediapipe-world". See `slt.enums.SignEmbeddingModels`
+                for all options.)
         """
         self._text_language = None
         self._sign_language = None
@@ -225,3 +231,19 @@ class ConcatenativeSynthesis(TextToSignModel):
         if isinstance(sign_format, type) and issubclass(sign_format, Sign):
             return sign_format
         raise TypeError(f"Expected str or type[Sign], got {sign_format = }.")
+
+    def translate_to_video(self, text: str, output_path: str = "output_psl_video.mp4", *args, **kwargs):
+        """
+        Translate text to PSL sign language video and save to file.
+        Args:
+            text: The input text to be translated.
+            output_path: Path to save the generated video.
+        Returns:
+            output_path
+        """
+        # Ensure sign_format is video
+        if self.sign_format.name() != "video":
+            raise ValueError("sign_format must be 'video' to output video.")
+        sign_video = self.translate(text, *args, **kwargs)
+        sign_video.save(output_path)
+        return output_path

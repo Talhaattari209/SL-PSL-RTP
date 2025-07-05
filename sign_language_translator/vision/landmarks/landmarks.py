@@ -73,7 +73,8 @@ class Landmarks(Sign):
         numpy(*args, **kwargs): Returns the landmarks data as a NumPy array.
         torch(dtype=None, device=None): Returns the landmarks data as a PyTorch tensor.
         tolist(): Returns the landmarks data as a nested list.
-        concatenate(objects: Iterable[Landmarks]): Concatenates a sequence of Landmarks objects along the first dimension (time) and returns a new Landmarks object
+        concatenate(objects: Iterable[Landmarks]): Concatenates a sequence of Landmarks objects along 
+            the first dimension (time) and returns a new Landmarks object
         transform(transformation: Callable): Applies a transformation function to the landmarks data.
         show(**kwargs): Displays the landmarks data.
         __getitem__(indices): Returns a new Landmarks object with the specified indices.
@@ -81,7 +82,8 @@ class Landmarks(Sign):
         __next__(): Returns the next frame of the landmarks data.
 
     Attributes:
-        data: The landmarks data as a NumPy array or PyTorch tensor depending upon what it was initialized with.
+        data: The landmarks data as a NumPy array or PyTorch tensor depending
+              upon what it was initialized with.
         n_frames: The number of frames or time-steps in the data.
         n_landmarks: The number of landmarks in each frame of the data.
         n_features: The number of features per landmark (same as n_coordinates).
@@ -498,10 +500,18 @@ class Landmarks(Sign):
         and return a new Landmarks object.
 
         Args:
-            label (str): The filename of the landmarks asset to load. 'landmarks/' is prepended to the label if it does not start with it. An example is 'landmarks/pk-hfad-1_airport.landmarks-mediapipe.csv') for embedding of a dictionary video. General syntax is `landmarks/country-organization-number_text[_person_camera].landmarks-model.extension`.
-            archive_name (Optional[str], optional): The name of the archive which contains the landmarks asset. If None, the archive name is inferred from the label. An example is `datasets/pk-hfad-1.landmarks-mediapipe-csv.zip`. General syntax is `datasets/country-organization-number[_person_camera].landmarks-model-extension.zip`. Defaults to None.
-            overwrite (bool, optional): Whether to overwrite the landmarks asset if it is already extracted. Defaults to False.
-            progress_bar (bool, optional): Whether to display a progress bar while downloading the archive or extracting the asset. Defaults to True.
+            label (str): The filename of the landmarks asset to load. 'landmarks/' is prepended to
+             the label if it does not start with it. 
+            An example is 'landmarks/pk-hfad-1_airport.landmarks-mediapipe.csv') for embedding of a dictionary video.
+             General syntax is `landmarks/country-organization-number_text[_person_camera].landmarks-model.extension`.
+            archive_name (Optional[str], optional): The name of the archive which contains the landmarks asset. If None,
+             the archive name is inferred from the label. An example is `datasets/pk-hfad-1.landmarks-mediapipe-csv.zip`.
+              General syntax is `datasets/country-organization-number[_person_camera].landmarks-model-extension.zip`.
+               Defaults to None.
+            overwrite (bool, optional): Whether to overwrite the landmarks asset if it is already extracted. Defaults to 
+            False.
+            progress_bar (bool, optional): Whether to display a progress bar while downloading the archive or extracting
+             the asset. Defaults to True.
             leave (bool, optional): Whether to leave the progress bar after the operation is complete. Defaults to True.
             **kwargs: Additional keyword arguments to be passed to the Landmarks constructor.
 
@@ -560,7 +570,8 @@ class Landmarks(Sign):
     ):
         """
         Initialize the current landmarks object from the provided arguments.
-        The sign parameter can be a string (path to a file), an NDArray, a Tensor, or a sequence of these types.
+        The sign parameter can be a string (path to a file), an NDArray, a Tensor, or a sequence of
+         these types.
         """
         if isinstance(sign, str):
             self._from_path(sign)

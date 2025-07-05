@@ -1135,3 +1135,39 @@ class Video(Sign, VideoFrames):
         self._path = None
 
         self.is_closed = True
+
+def record_live_video(duration=5, output_path=None, fps=20):
+    """
+    Records a live video from the default camera for the given duration (seconds).
+    Returns the path to the saved video file.
+    """
+    import cv2
+    import tempfile
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        raise RuntimeError("Could not open webcam.")
+
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    if output_path is None:
+        import os
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
+        output_path = temp_file.name
+        temp_file.close()
+    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+
+    frame_count = int(duration * fps)
+    for _ in range(frame_count):
+        ret, frame = cap.read()
+        if not ret:
+            break
+        out.write(frame)
+        cv2.imshow('Recording (press q to stop)', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    out.release()
+    cv2.destroyAllWindows()
+    return output_path

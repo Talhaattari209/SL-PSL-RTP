@@ -46,7 +46,8 @@ class CausalMultiHeadSelfAttention(torch.nn.Module):
     Parameters:
         n_heads (int): The number of attention heads.
         embed_size (int): The size of the input embedding dimension. Must be divisible by n_heads.
-        dropout (float, optional): The dropout probability applied in the attention and projection layers. Default is 0.25.
+        dropout (float, optional): The dropout probability applied in the attention and projection layers.
+           Default is 0.25.
         max_seq_len (int, optional): The maximum input sequence length (used only in custom dot-product attention (pytorch<2.0.0)). Default is 64.
         attention_bias (bool, optional): If True, enables trainable bias parameter in the query, key & value layer. Default is False.
 
@@ -153,7 +154,7 @@ class CausalMultiHeadSelfAttention(torch.nn.Module):
                 keys,
                 values,
                 attn_mask=None,
-                dropout_p=self.dropout_probability if self.training else 0,
+                dropout_p = self.dropout_probability if self.training else 0,
                 is_causal=True,
             )  # (batch, n_head, seq_len, head_size)
         else:
@@ -260,7 +261,8 @@ class DecoderBlock(torch.nn.Module):
     This class implements a single transformer decoder block, consisting of causal multi-head self-attention
     and feedforward neural network layers but no cross-attention. The input tensor x goes through the
     layer norm & attention mechanism and also forms a skip connection over them into another
-    layer norm & feedforward neural network. The output also contains a residual connection over these two operations.
+    layer norm & feedforward neural network. The output also contains a residual connection 
+    over these two operations.
 
     Parameters:
         n_embed (int): The size of the input feature dimension and also the output feature dimension.

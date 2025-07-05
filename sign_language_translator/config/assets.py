@@ -28,7 +28,8 @@ from sign_language_translator.utils import (
 class Assets:
     """
     Static class for managing assets related to the sign language translator.
-    It wraps around utility functions to automatically handle downloading, extracting, deleting and loading assets.
+    It wraps around utility functions to automatically handle downloading, extracting,
+    deleting and loading assets.
 
     Attributes:
         ROOT_DIR (str): The root directory path where the sign language datasets & models are stored.
@@ -94,13 +95,13 @@ class Assets:
     """A dictionary mapping asset filenames to their corresponding URLs."""
 
     asset_regex_to_urls_file: List[Tuple[str, str]] = [
-        # regex_for_assets, urls_file
+        # regex_for_assets , urls_file
         (r"^videos/pk-.*mp4$", "pk-dictionary-urls.json"),
         (r".*zip$", "archive-urls.json"),
         (r".*", "extra-urls.json"),
     ]
-    """A list of tuples that map regular expressions matching asset names to URLs files containing URLs to that asset group.
-    The regex are tried sequentially so make sure list order is right."""
+    """A list of tuples that map regular expressions matching asset names to URLs files 
+    containing URLs to that asset group.The regex are tried sequentially so make sure list order is right."""
 
     _checksum_filename = "checksum.json"
     _loaded_url_files = set()
@@ -108,7 +109,8 @@ class Assets:
     @classmethod
     def set_root_dir(cls, path: str) -> None:
         """Set the SLT resources directory path.
-        Helpful when using custom datasets, or when data must be stored outside install directory at a centralized location.
+        Helpful when using custom datasets, or when data must be stored outside 
+        install directory at a centralized location.
         (e.g hosted on cloud and mounted on disk).
         By default, resources are downloaded to the 'install_directory/assets'.
 

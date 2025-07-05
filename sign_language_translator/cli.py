@@ -23,10 +23,19 @@ sequences of vectors.
 """
 
 import os
+import argparse
+import sys
+from pathlib import Path
 
 import click
+import logging
+import cv2
+import numpy as np
 
 from sign_language_translator import __version__
+from sign_language_translator.models import get_model
+from sign_language_translator.config.enums import ModelCodes
+from sign_language_translator.models.sign_to_text.wlasl_sign_to_text_model import WLASLSignToTextModel
 
 # TODO: Dockerize the CLI.. but model persistance issue
 
@@ -508,6 +517,321 @@ def embed(
         # TODO: if save_format == "csv":
     else:
         raise ValueError("ERROR: Model loading failed!")
+
+
+# Sign-to-text command
+@slt.command(no_args_is_help=True)
+@click.argument("video_path", type=click.Path(exists=True))
+@click.option(
+    "--model-path",
+    default="sign_language_model_best.pth",
+    help="Path to the trained PSL sign-to-text model (default: sign_language_model_best.pth)"
+)
+@click.option(
+    "--vocab-path",
+    help="Path to vocabulary file (optional)"
+)
+@click.option(
+    "--device",
+    default="cpu",
+    type=click.Choice(["cpu", "cuda"]),
+    help="Device to run the model on (default: cpu)"
+)
+@click.option(
+    "--output",
+    type=click.Path(),
+    help="Output file to save the predicted text"
+)
+def sign_to_text(video_path, model_path, vocab_path, device, output):
+    """
+    Translate PSL sign language video to text using the trained CNN+LSTM model.
+    
+    Example:
+        $ slt sign-to-text video.mp4 --model-path model.pth --device cuda
+    """
+    try:
+        import cv2
+        import numpy as np
+        
+        # Load the PSL sign-to-text model
+        model = get_model(
+            ModelCodes.PSL_SIGN_TO_TEXT,
+            model_path=model_path,
+            vocab_path=vocab_path,
+            device=device
+        )
+        
+        # Load and process video
+        cap = cv2.VideoCapture(video_path)
+        frames = []
+        
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frames.append(frame)
+        
+        cap.release()
+        
+        if not frames:
+            click.echo("❌ No frames found in the video")
+            return
+        
+        # Predict the sign
+        predicted_text = model.predict(frames)
+        
+        # Output result
+        click.echo(f"🎯 Predicted PSL Text: {predicted_text}")
+        
+        if output:
+            with open(output, 'w', encoding='utf-8') as f:
+                f.write(predicted_text)
+            click.echo(f"✅ Result saved to {output}")
+            
+    except Exception as e:
+        click.echo(f"❌ Error: {e}")
+
+
+@slt.command(no_args_is_help=True)
+@click.argument("video_path", type=click.Path(exists=True))
+@click.option(
+    "--model-path",
+    default="sign_language_translator/assets_WLASL/model/wlasl_sign_cnn_lstm_30frames.pth",
+    help="Path to the trained WLASL sign-to-text model"
+)
+@click.option(
+    "--device",
+    default="cpu",
+    type=click.Choice(["cpu", "cuda"]),
+    help="Device to run the model on (default: cpu)"
+)
+@click.option(
+    "--assets-path",
+    help="Path to WLASL assets directory (optional)"
+)
+@click.option(
+    "--output",
+    type=click.Path(),
+    help="Output file to save the predicted text"
+)
+def wlasl_sign_to_text(video_path, model_path, device, assets_path, output):
+    """
+    Translate WLASL sign language video to text using the trained CNN+LSTM model.
+    
+    Example:
+        $ slt wlasl-sign-to-text video.mp4 --model-path model.pth --device cuda
+    """
+    try:
+        import cv2
+        import numpy as np
+        
+        # Load the WLASL sign-to-text model
+        model = get_model(
+            ModelCodes.WLASL_SIGN_TO_TEXT,
+            model_path=model_path,
+            device=device,
+            assets_path=assets_path
+        )
+        
+        # Load and process video
+        cap = cv2.VideoCapture(video_path)
+        frames = []
+        
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frames.append(frame)
+        
+        cap.release()
+        
+        if not frames:
+            click.echo("❌ No frames found in the video")
+            return
+        
+        # Predict the sign
+        predicted_text = model.predict(frames)
+        
+        # Output result
+        click.echo(f"🎯 Predicted WLASL Text: {predicted_text}")
+        
+        if output:
+            with open(output, 'w', encoding='utf-8') as f:
+                f.write(predicted_text)
+            click.echo(f"✅ Result saved to {output}")
+            
+    except Exception as e:
+        click.echo(f"❌ Error: {e}")
+
+
+@slt.command(no_args_is_help=True)
+@click.argument("text", type=str)
+@click.option(
+    "--text-language",
+    default="urdu",
+    help="Text language (default: urdu)"
+)
+@click.option(
+    "--sign-format",
+    default="video",
+    type=click.Choice(["video", "landmarks"]),
+    help="Output sign format (default: video)"
+)
+@click.option(
+    "--output",
+    type=click.Path(),
+    help="Output file to save the synthesized signs"
+)
+def psl_text_to_sign(text, text_language, sign_format, output):
+    """
+    Translate text to PSL sign language using concatenative synthesis.
+    
+    Example:
+        $ slt psl-text-to-sign "hello world" --text-language urdu --sign-format video
+    """
+    try:
+        # Load the PSL text-to-sign model
+        model = get_model(
+            ModelCodes.CONCATENATIVE_SYNTHESIS,
+            text_language=text_language,
+            sign_language="pakistan-sign-language",
+            sign_format=sign_format
+        )
+        
+        # Translate text to sign
+        sign_result = model.translate(text)
+        
+        # Output result
+        click.echo(f"🎯 Input Text: {text}")
+        click.echo(f"🎯 Generated PSL Sign: {sign_result.name}")
+        click.echo(f"🎯 Sign Length: {len(sign_result)} frames")
+        
+        if output:
+            # Save the sign result (implementation depends on your Sign class)
+            if hasattr(sign_result, 'save'):
+                sign_result.save(output)
+                click.echo(f"✅ Sign saved to {output}")
+            else:
+                click.echo(f"⚠️  Sign object doesn't have save method")
+            
+    except Exception as e:
+        click.echo(f"❌ Error: {e}")
+
+
+@slt.command(no_args_is_help=True)
+@click.argument("text", type=str)
+@click.option(
+    "--text-language",
+    default="english",
+    help="Text language (default: english)"
+)
+@click.option(
+    "--sign-format",
+    default="landmarks",
+    type=click.Choice(["landmarks", "video"]),
+    help="Output sign format (default: landmarks)"
+)
+@click.option(
+    "--assets-path",
+    help="Path to WLASL assets directory (optional)"
+)
+@click.option(
+    "--output",
+    type=click.Path(),
+    help="Output file to save the synthesized signs"
+)
+def wlasl_text_to_sign(text, text_language, sign_format, assets_path, output):
+    """
+    Translate English text to WLASL sign language using concatenative synthesis.
+    
+    Example:
+        $ slt wlasl-text-to-sign "hello world" --sign-format landmarks
+    """
+    try:
+        # Load the WLASL text-to-sign model
+        model = get_model(
+            ModelCodes.WLASL_CONCATENATIVE_SYNTHESIS,
+            text_language=text_language,
+            sign_format=sign_format,
+            assets_path=assets_path
+        )
+        
+        # Translate text to sign
+        sign_result = model.translate(text)
+        
+        # Output result
+        click.echo(f"🎯 Input Text: {text}")
+        click.echo(f"🎯 Generated WLASL Sign: {sign_result.name}")
+        click.echo(f"🎯 Sign Length: {len(sign_result)} frames")
+        
+        if output:
+            # Save the sign result (implementation depends on your Sign class)
+            if hasattr(sign_result, 'save'):
+                sign_result.save(output)
+                click.echo(f"✅ Sign saved to {output}")
+            else:
+                click.echo(f"⚠️  Sign object doesn't have save method")
+            
+    except Exception as e:
+        click.echo(f"❌ Error: {e}")
+
+
+@slt.command(no_args_is_help=True)
+def bilingual_info():
+    """
+    Display information about the bilingual PSL<->WLASL system.
+    """
+    click.echo("🌐 Bilingual Sign Language System (PSL <-> WLASL)")
+    click.echo("=" * 50)
+    click.echo()
+    click.echo("📋 Available Tasks:")
+    click.echo("1. PSL Sign-to-Text (CNN+LSTM) - slt sign-to-text")
+    click.echo("2. WLASL Sign-to-Text (CNN+LSTM) - slt wlasl-sign-to-text")
+    click.echo("3. PSL Text-to-Sign (Concatenative Synthesis) - slt psl-text-to-sign")
+    click.echo("4. WLASL Text-to-Sign (Concatenative Synthesis) - slt wlasl-text-to-sign")
+    click.echo()
+    click.echo("🔧 Model Codes:")
+    click.echo("- PSL_SIGN_TO_TEXT: PSL sign-to-text translation")
+    click.echo("- WLASL_SIGN_TO_TEXT: WLASL sign-to-text translation")
+    click.echo("- CONCATENATIVE_SYNTHESIS: PSL text-to-sign translation")
+    click.echo("- WLASL_CONCATENATIVE_SYNTHESIS: WLASL text-to-sign translation")
+    click.echo()
+    click.echo("📚 Examples:")
+    click.echo("$ slt sign-to-text video.mp4 --device cuda")
+    click.echo("$ slt wlasl-sign-to-text video.mp4 --device cuda")
+    click.echo("$ slt psl-text-to-sign 'hello world' --text-language urdu")
+    click.echo("$ slt wlasl-text-to-sign 'hello world' --sign-format landmarks")
+
+
+@click.command('predict-wlasl-sign')
+@click.argument('video_path', type=click.Path(exists=True))
+@click.option('--model-path', default='wlasl_vit_transformer.pth', help='Path to trained WLASL model (.pth)')
+@click.option('--device', default='cpu', help='Device to use (cpu or cuda)')
+def predict_wlasl_sign(video_path, model_path, device):
+    """Predict the gloss for a WLASL video file using a trained model."""
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.info(f"Loading model from {model_path} on {device}")
+    model = WLASLSignToTextModel(model_path=model_path, device=device)
+    # Extract frames from video
+    logging.info(f"Extracting frames from {video_path}")
+    cap = cv2.VideoCapture(video_path)
+    frames = []
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        # Resize to 64x64 if needed
+        frame_resized = cv2.resize(frame, (64, 64))
+        frames.append(frame_resized)
+    cap.release()
+    if not frames:
+        logging.error("No frames extracted from video.")
+        click.echo("Error: No frames extracted from video.")
+        return
+    logging.info(f"Extracted {len(frames)} frames. Running prediction...")
+    predicted_gloss = model.predict(frames)
+    click.echo(f"Predicted gloss: {predicted_gloss}")
+    logging.info(f"Prediction complete: {predicted_gloss}")
 
 
 if __name__ == "__main__":

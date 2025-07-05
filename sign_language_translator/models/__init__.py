@@ -16,7 +16,14 @@ Language Models:
 Text to Sign Translation:
 -------------------------
 - TextToSignModel: An abstract base class for all model that translates text into sign language gestures in this package.
-- ConcatenativeSynthesis: A rule-based model for synthesizing sign language gestures from text.
+- ConcatenativeSynthesis: A rule-based model for synthesizing PSL sign language gestures from text.
+- WLASLConcatenativeSynthesis: A rule-based model for synthesizing WLASL sign language gestures from text.
+
+Sign to Text Translation:
+-------------------------
+- SignToTextModel: An abstract base class for all models that translate sign language videos to text.
+- PSLSignToTextModel: A neural network model for translating PSL video features to text.
+- WLASLSignToTextModel: A neural network model for translating WLASL video features to text.
 
 Video Embedding:
 ----------------
@@ -50,11 +57,17 @@ from sign_language_translator.models.language_models import (
     NgramLanguageModel,
     TransformerLanguageModel,
 )
+from sign_language_translator.models.sign_to_text import (
+    SignToTextModel,
+    PSLSignToTextModel,
+)
+from sign_language_translator.models.sign_to_text.wlasl_sign_to_text_model import WLASLSignToTextModel
 from sign_language_translator.models.text_embedding import (
     TextEmbeddingModel,
     VectorLookupModel,
 )
 from sign_language_translator.models.text_to_sign import ConcatenativeSynthesis
+from sign_language_translator.models.text_to_sign.concatenative_synthesis_wlasl import WLASLConcatenativeSynthesis
 from sign_language_translator.models.text_to_sign.t2s_model import TextToSignModel
 from sign_language_translator.models.video_embedding import (
     MediaPipeLandmarksModel,
@@ -70,12 +83,16 @@ __all__ = [
     "video_embedding",
     "text_embedding",
     "ConcatenativeSynthesis",
+    "WLASLConcatenativeSynthesis",
     "NgramLanguageModel",
     "TransformerLanguageModel",
     "BeamSampling",
     "MixerLM",
     "LanguageModel",
     "TextToSignModel",
+    "SignToTextModel",
+    "PSLSignToTextModel",
+    "WLASLSignToTextModel",
     "MediaPipeLandmarksModel",
     "VideoEmbeddingModel",
     "TextEmbeddingModel",

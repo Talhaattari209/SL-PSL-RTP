@@ -110,16 +110,18 @@ class SignLanguages(Enum, metaclass=PrintableEnumMeta):
 
     Attributes:
         - PAKISTAN_SIGN_LANGUAGE (str): Short code for the Pakistan Sign Language.
-        ...
+        - AMERICAN_SIGN_LANGUAGE (str): Short code for the American Sign Language (WLASL).
     """
 
     PAKISTAN_SIGN_LANGUAGE = "pakistan-sign-language"
+    AMERICAN_SIGN_LANGUAGE = "american-sign-language"
 
 
 class SignFormats(Enum, metaclass=PrintableEnumMeta):
     """
     Enumeration of available sign formats with their corresponding short codes.
-    For example, sign language can be a sequence of frames (video) or a sequence of pose vectors (landmarks) etc.
+    For example, sign language can be a sequence of frames (video) or a sequence of 
+    pose vectors (landmarks) etc.
 
     Attributes:
         - VIDEO (str): Short code for raw video.
@@ -151,26 +153,44 @@ class ModelCodes(Enum, metaclass=PrintableEnumMeta):
 
     Attributes:
         - CONCATENATIVE_SYNTHESIS (str): Short code for the rule-based text-to-sign translation model.
+        - WLASL_CONCATENATIVE_SYNTHESIS (str): Short code for the WLASL rule-based text-to-sign translation model.
 
-        - NGRAM_LM_UNIGRAM_NAMES (str): Short code for ngram model trained with window size 1 on en/ur person names data.
-        - NGRAM_LM_BIGRAM_NAMES (str): Short code for ngram model trained with window size 2 on en/ur person names data.
-        - NGRAM_LM_TRIGRAM_NAMES (str): Short code for ngram model trained with window size 3 on en/ur person names data.
-        - MIXER_LM_NGRAM_URDU (str): Short code for a mix of ngram models trained on urdu words of window size 1 to 6.
-        - TRANSFORMER_LM_UR_SUPPORTED (str): Short code for a transformer-based language model trained on ur supported tokens.
+        - NGRAM_LM_UNIGRAM_NAMES (str): Short code for ngram model trained with window size 1 on
+                 en/ur person names data.
+        - NGRAM_LM_BIGRAM_NAMES (str): Short code for ngram model trained with 
+                 window size 2 on en/ur person names data.
+        - NGRAM_LM_TRIGRAM_NAMES (str): Short code for ngram model trained with 
+                  window size 3 on en/ur person names data.
+        - MIXER_LM_NGRAM_URDU (str): Short code for a mix of ngram models trained on 
+                  urdu words of window size 1 to 6.
+        - TRANSFORMER_LM_UR_SUPPORTED (str): Short code for a transformer-based language model
+                    trained on ur supported tokens.
 
-        - MEDIAPIPE_POSE_V2_HAND_V1 (str): Short code for a video embedding model which uses MediaPipe pose_landmarker_heavy & hand_landmarker.
-        - MEDIAPIPE_POSE_V1_HAND_V1 (str): Short code for a video embedding model which uses MediaPipe pose_landmarker_full & hand_landmarker.
-        - MEDIAPIPE_POSE_V0_HAND_V1 (str): Short code for a video embedding model which uses MediaPipe pose_landmarker_lite & hand_landmarker.
+        - MEDIAPIPE_POSE_V2_HAND_V1 (str): Short code for a video embedding model which uses
+                    MediaPipe pose_landmarker_heavy & hand_landmarker.
+        - MEDIAPIPE_POSE_V1_HAND_V1 (str): Short code for a video embedding model which uses
+                    MediaPipe pose_landmarker_full & hand_landmarker.
+        - MEDIAPIPE_POSE_V0_HAND_V1 (str): Short code for a video embedding model which uses
+                     MediaPipe pose_landmarker_lite & hand_landmarker.
 
         - LOOKUP_UR_FASTTEXT_CC (str): Short code for a text embedding model which uses a lookup table to embed Urdu tokens using fastText embeddings trained on Common Crawl.
+        
+        - PSL_SIGN_TO_TEXT (str): Short code for the PSL sign-to-text translation model.
+        - WLASL_SIGN_TO_TEXT (str): Short code for the WLASL sign-to-text translation model.
     """
 
     # text-to-sign translation
     CONCATENATIVE_SYNTHESIS = "concatenative-synthesis"
     """The core rule-based text to sign translation model that joins sign clips for each word in a text sentence."""
+    WLASL_CONCATENATIVE_SYNTHESIS = "wlasl-concatenative-synthesis"
+    """The WLASL rule-based text to sign translation model that joins sign clips for each word in a text sentence."""
     # LANDMARK_GAN = "landmark-gan"
 
     # sign-to-text translation
+    PSL_SIGN_TO_TEXT = "psl-sign-to-text"
+    """Neural network model for translating PSL video features to text."""
+    WLASL_SIGN_TO_TEXT = "wlasl-sign-to-text"
+    """Neural network model for translating WLASL video features to text."""
     # GESTURE = "gesture"
 
     # language-models
@@ -183,23 +203,36 @@ class ModelCodes(Enum, metaclass=PrintableEnumMeta):
 
     # video-embedding-models
     MEDIAPIPE_POSE_V2_HAND_V1 = "mediapipe-pose-2-hand-1"
-    """Short code for the video embedding model which uses MediaPipe pose_landmarker_heavy & hand_landmarker to generate (33 pose + 2 * 21 hand) world & 75 image landmarks (x, y, z, visibility, presence) for each frame of the video."""
+    """Short code for the video embedding model which uses MediaPipe pose_landmarker_heavy & 
+    hand_landmarker to generate (33 pose + 2 * 21 hand) world & 75 image landmarks (x, y, z, visibility, presence) 
+    for each frame of the video."""
     MEDIAPIPE_POSE_V1_HAND_V1 = "mediapipe-pose-1-hand-1"
-    """Short code for the video embedding model which uses MediaPipe pose_landmarker_full  & hand_landmarker to generate (33 pose + 2 * 21 hand) world & 75 image landmarks (x, y, z, visibility, presence) for each frame of the video."""
+    """Short code for the video embedding model which uses MediaPipe pose_landmarker_full  & hand_landmarker
+      to generate (33 pose + 2 * 21 hand) world & 75 image landmarks (x, y, z, visibility, presence) 
+      for each frame of the video."""
     MEDIAPIPE_POSE_V0_HAND_V1 = "mediapipe-pose-0-hand-1"
-    """Short code for the video embedding model which uses MediaPipe pose_landmarker_lite  & hand_landmarker to generate (33 pose + 2 * 21 hand) world & 75 image landmarks (x, y, z, visibility, presence) for each frame of the video."""
+    """Short code for the video embedding model which uses MediaPipe pose_landmarker_lite  & hand_landmarker
+      to generate (33 pose + 2 * 21 hand) world & 75 image landmarks (x, y, z, visibility, presence) 
+      for each frame of the video."""
 
     # text-embedding-models
     LOOKUP_UR_FASTTEXT_CC = "lookup-ur-fasttext-cc.pt"
-    """Short code for the text embedding model which uses a lookup table to embed Urdu tokens using fastText embeddings trained on Common Crawl."""
+    """Short code for the text embedding model which uses a lookup table to embed Urdu tokens using fastText 
+         embeddings trained on Common Crawl."""
 
 
 class SignEmbeddingModels(Enum, metaclass=PrintableEnumMeta):
     """The Names of video embedding models that *have been* used to embed sign language videos in the available datasets.
 
     Attributes:
-        MEDIAPIPE_WORLD (str): Short code for the video embedding model which uses MediaPipe pose_landmarker_heavy & hand_landmarker to generate (33 pose + 2 * 21 hand) world landmarks (x, y, z, visibility, presence) for each frame of the video. World landmarks are 3D coordinates in meters with origin at the center of the hips for pose_landmarker and at the center of each hand for hand_landmarker model.
-        MEDIAPIPE_IMAGE (str): Short code for the video embedding model which uses MediaPipe pose_landmarker_heavy & hand_landmarker to generate (33 pose + 2 * 21 hand) image landmarks (x, y, z, visibility, presence) for each frame of the video. Image landmarks are 2D coordinates as fraction of the frame width or height with origin at the top-left corner of the frame and z value is the depth from the camera.
+        MEDIAPIPE_WORLD (str): Short code for the video embedding model which uses MediaPipe pose_landmarker_heavy
+          & hand_landmarker to generate (33 pose + 2 * 21 hand) world landmarks (x, y, z, visibility, presence) for each frame of the video.
+            World landmarks are 3D coordinates in meters with origin at the center of the hips for pose_landmarker and at the center of each hand
+              for hand_landmarker model.
+        MEDIAPIPE_IMAGE (str): Short code for the video embedding model which uses MediaPipe pose_landmarker_heavy & hand_landmarker to 
+          generate (33 pose + 2 * 21 hand) image landmarks (x, y, z, visibility, presence) for each frame of the video. Image landmarks are 2D
+          coordinates as fraction of the frame width or height with origin at the top-left corner of the frame and z value is the depth from
+          the camera.
     """
 
     MEDIAPIPE_WORLD = "mediapipe-world"
@@ -223,6 +256,9 @@ class ModelCodeGroups(Enum, metaclass=PrintableEnumMeta):
 
         ALL_TEXT_EMBEDDING_MODELS (set): Set of model codes for all text embedding models.
         ALL_VECTOR_LOOKUP_MODELS (set): Set of model codes for all vector lookup-based text embedding models.
+        
+        ALL_SIGN_TO_TEXT_MODELS (set): Set of model codes for all sign-to-text translation models.
+        ALL_TEXT_TO_SIGN_MODELS (set): Set of model codes for all text-to-sign translation models.
     """
 
     # language models
@@ -242,6 +278,18 @@ class ModelCodeGroups(Enum, metaclass=PrintableEnumMeta):
         | ALL_TRANSFORMER_LANGUAGE_MODELS  # type: ignore
         | ALL_MIXER_LANGUAGE_MODELS
     )
+
+    # sign-to-text models
+    ALL_SIGN_TO_TEXT_MODELS = {
+        ModelCodes.PSL_SIGN_TO_TEXT.value,
+        ModelCodes.WLASL_SIGN_TO_TEXT.value,
+    }
+
+    # text-to-sign models
+    ALL_TEXT_TO_SIGN_MODELS = {
+        ModelCodes.CONCATENATIVE_SYNTHESIS.value,
+        ModelCodes.WLASL_CONCATENATIVE_SYNTHESIS.value,
+    }
 
     # video embedding models
     ALL_MEDIAPIPE_EMBEDDING_MODELS = {
@@ -281,6 +329,15 @@ def normalize_short_code(short_code: Union[str, Enum]) -> str:
             "concatenative-synthesis",
             "concatenative_synthesis",
             "concat-synth",
+        },
+        ModelCodes.PSL_SIGN_TO_TEXT.value: {
+            "psl-sign-to-text",
+            "psl-sign2text",
+            "psl-s2t",
+            "sign-to-text",
+            "sign2text",
+            "s2t",
+            "psl-translator",
         },
         TextLanguages.URDU.value: {
             "urdu",

@@ -49,6 +49,16 @@ def get_model(model_code: Union[str, Enum], *args, **kwargs):
         # TODO: validate arg types
         return ConcatenativeSynthesis(*args, **kwargs)
 
+    if model_code == ModelCodes.PSL_SIGN_TO_TEXT.value:
+        from sign_language_translator.models import PSLSignToTextModel
+        
+        # Get model path from kwargs or use default
+        model_path = kwargs.get('model_path', 'sign_language_model_best.pth')
+        vocab_path = kwargs.get('vocab_path', None)
+        device = kwargs.get('device', 'cpu')
+        
+        return PSLSignToTextModel.load(model_path, vocab_path, device)
+
     if model_code in ModelCodeGroups.ALL_NGRAM_LANGUAGE_MODELS.value:
         from sign_language_translator.models import NgramLanguageModel
 
