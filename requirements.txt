@@ -11,7 +11,7 @@ click
 pillow
 matplotlib
 # Try the package without version constraint first
-sign-language-translator
+sign-language-translator==0.8.1
 # Alternative packages for sign language processing
 mediapipe
 tensorflow
