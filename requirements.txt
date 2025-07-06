@@ -6,5 +6,4 @@ tqdm
 requests
 click
 matplotlib
-# Try to install sign-language-translator if available
-sign-language-translator==0.7.2 
+# sign-language-translator==0.7.2  # Temporarily disabled due to Python 3.13 compatibility 

@@ -10,7 +10,7 @@ authors = [
     {name = "Your Name", email = "your.email@example.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.9,<3.12"
+requires-python = ">=3.9,<3.14"
 dependencies = [
     "streamlit>=1.28.0",
     "tqdm",
@@ -24,7 +24,7 @@ dependencies = [
     "click",
     "pillow",
     "matplotlib",
-    "sign-language-translator==0.7.2",
+    # "sign-language-translator==0.7.2",  # Temporarily disabled due to Python 3.13 compatibility
     "mediapipe",
     "tensorflow",
     "transformers",
