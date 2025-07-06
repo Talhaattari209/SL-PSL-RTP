@@ -1,0 +1,10 @@
+streamlit>=1.28.0
+opencv-python
+numpy
+pillow
+tqdm
+requests
+click
+matplotlib
+# Try to install sign-language-translator if available
+sign-language-translator==0.7.2 
