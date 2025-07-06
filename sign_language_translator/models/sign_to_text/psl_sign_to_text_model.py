@@ -110,7 +110,7 @@ class PSLSignToTextModel(SignToTextModel):
         self.idx_to_word = {}
         self.word_to_idx = {}
         
-        self.eval()
+        self.model.eval()
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -307,7 +307,7 @@ class PSLSignToTextModel(SignToTextModel):
             # Direct state dict
             self.model.load_state_dict(checkpoint)
         
-        self.eval()
+        self.model.eval()
         print(f"SignLanguageCNN model loaded successfully from {model_path}")
     
     def save_model(self, model_path: str) -> None:
