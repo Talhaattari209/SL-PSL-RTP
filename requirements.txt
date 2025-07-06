@@ -10,5 +10,6 @@ requests
 click
 pillow
 matplotlib
-sign-language-translator==0.8.1
+sign-language-translator>=0.7.0,<0.8.0
+# sign-language-translator==0.7.2  # Temporarily disabled due to Python 3.12 compatibility issues
 deep_translator==1.11.4
