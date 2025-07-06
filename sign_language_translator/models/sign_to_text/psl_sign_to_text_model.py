@@ -28,33 +28,33 @@ class SignLanguageCNN(nn.Module):
     - Output size of 776 classes
     """
     
-    def __init__(self, num_classes: int = 776):
+    def __init__(self, num_classes: int = 789):
         super(SignLanguageCNN, self).__init__()
         
-        # 3D Convolutional layers
+        # 3D Convolutional layers - Updated to match checkpoint architecture
         self.conv_layers = nn.Sequential(
-            # First conv layer: 3 -> 16 channels
-            nn.Conv3d(3, 16, kernel_size=(5, 3, 1), stride=(1, 1, 1), padding=(2, 1, 0)),
+            # First conv layer: 3 -> 32 channels
+            nn.Conv3d(3, 32, kernel_size=(5, 3, 1), stride=(1, 1, 1), padding=(2, 1, 0)),
             nn.ReLU(),
             nn.MaxPool3d(kernel_size=(2, 2, 1), stride=(2, 2, 1), padding=0, dilation=1, ceil_mode=False),
             
-            # Second conv layer: 16 -> 32 channels
-            nn.Conv3d(16, 32, kernel_size=(5, 3, 1), stride=(1, 1, 1), padding=(2, 1, 0)),
-            nn.ReLU(),
-            nn.MaxPool3d(kernel_size=(2, 2, 1), stride=(2, 2, 1), padding=0, dilation=1, ceil_mode=False),
-            
-            # Third conv layer: 32 -> 64 channels
+            # Second conv layer: 32 -> 64 channels
             nn.Conv3d(32, 64, kernel_size=(5, 3, 1), stride=(1, 1, 1), padding=(2, 1, 0)),
+            nn.ReLU(),
+            nn.MaxPool3d(kernel_size=(2, 2, 1), stride=(2, 2, 1), padding=0, dilation=1, ceil_mode=False),
+            
+            # Third conv layer: 64 -> 128 channels
+            nn.Conv3d(64, 128, kernel_size=(5, 3, 1), stride=(1, 1, 1), padding=(2, 1, 0)),
             nn.ReLU(),
             nn.MaxPool3d(kernel_size=(2, 2, 1), stride=(2, 2, 1), padding=0, dilation=1, ceil_mode=False),
         )
         
-        # Fully connected layers
+        # Fully connected layers - Updated to match checkpoint architecture
         self.fc_layers = nn.Sequential(
-            nn.Linear(in_features=6720, out_features=128, bias=True),
+            nn.Linear(in_features=5120, out_features=512, bias=True),
             nn.ReLU(),
             nn.Dropout(p=0.5, inplace=False),
-            nn.Linear(in_features=128, out_features=num_classes, bias=True),
+            nn.Linear(in_features=512, out_features=num_classes, bias=True),
         )
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -88,7 +88,7 @@ class PSLSignToTextModel(SignToTextModel):
     """
     
     def __init__(self, 
-                 num_classes: int = 776,
+                 num_classes: int = 789,
                  device: str = "cpu"):
         """
         Initialize the PSL Sign-to-Text model.
