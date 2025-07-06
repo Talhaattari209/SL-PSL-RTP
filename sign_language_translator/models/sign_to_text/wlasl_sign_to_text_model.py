@@ -159,7 +159,7 @@ class WLASLSignToTextModel(SignToTextModel):
     def _load_vocabulary(self) -> List[str]:
         """Load WLASL vocabulary from the filtered data."""
         try:
-            mappings_dir = Path(self._assets_path) / "mappings"
+            mappings_dir = Path(self.assets_path) / "mappings"
             filtered_wlasl_path = mappings_dir / "filtered_wlasl.json"
             
             if filtered_wlasl_path.exists():
