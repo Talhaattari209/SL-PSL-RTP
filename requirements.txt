@@ -6,4 +6,5 @@ tqdm
 requests
 click
 matplotlib
+-e .
 # sign-language-translator==0.7.2  # Temporarily disabled due to Python 3.13 compatibility 
