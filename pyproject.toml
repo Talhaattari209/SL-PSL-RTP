@@ -16,8 +16,8 @@ dependencies = [
     "tqdm",
     "scipy",
     "scikit-learn",
-    "torch",
-    "torchvision",
+    # "torch",
+    # "torchvision",
     "opencv-python",
     "numpy",
     "requests",
@@ -26,8 +26,8 @@ dependencies = [
     "matplotlib",
     # Local install handled via requirements.txt with '-e .'
     # "sign-language-translator==0.7.2",  # Temporarily disabled due to Python 3.13 compatibility
-    "mediapipe",
-    "tensorflow",
+    # "mediapipe",
+    # "tensorflow",
     "transformers",
     "deep_translator==1.11.4",
 ]
